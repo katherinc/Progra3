@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
+import com.katerin.DAO.ProductoDao;
 import com.katerin.model.Inventario;
 
 /**
@@ -32,31 +34,19 @@ public class ServeleteControler extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		//doGet(request, response);
-		String acction = request.getParameter("btn");
-        EntityManager  em;
-		
-		EntityManagerFactory emf;
-		
-		emf=Persistence.createEntityManagerFactory("Iniciando-Hibernate-JPA");
-		em = emf.createEntityManager();
 		Inventario in = new Inventario();
-        response.sendRedirect("index.jsp");
-		
-		
-		try {
-		String id = request.getParameter("Id");
-		String nombrePr = request.getParameter("Nproductos");
-		String precioPr = request.getParameter("Pproductos");
-		String cantidadPr = request.getParameter("Ccantidad");
-		String totalPr = request.getParameter("Tproductos");
+		ProductoDao prdao = new ProductoDao();
+		String id= null;
+		String nombrePr= null ;
+		String precioPr = null;
+		String cantidadPr= null;
+		String totalPr= null;
+        try {
+		id= request.getParameter("Id");
+		nombrePr= request.getParameter("Nproductos");
+		precioPr= request.getParameter("Pproductos");
+		cantidadPr= request.getParameter("Ccantidad");
+		totalPr = request.getParameter("Tproductos");
 		
 		
 		in.setId(Integer.parseInt(id));
@@ -65,46 +55,66 @@ public class ServeleteControler extends HttpServlet {
 		in.setCantidadProducto(Integer.parseInt(cantidadPr));
 		in.setTotalProducto(Double.parseDouble(totalPr));
 		
-		
-		}catch(Exception e) {
+        }
+		catch(Exception e) {
 			
 		}
 		
-		if(acction.equals("Envio de datos")) {
+		String acction = request.getParameter("btn");
+		
+		if (acction.equals("GUARDAR")) {
+			in.setId(Integer.parseInt(id));
+			in.setNombreProducto(nombrePr);
+			in.setPrecioProducto(Double.parseDouble(precioPr));
+			in.setCantidadProducto(Integer.parseInt(cantidadPr));
+			in.setTotalProducto(Double.parseDouble(totalPr));
+		
+	    prdao.agregarDatos(in);
+	    response.sendRedirect("index.jsp");
+		}
+		else if(acction.equals("ACTUALIZAR")) {
+			in.setId(Integer.parseInt(id));
+			in.setNombreProducto(nombrePr);
+			in.setPrecioProducto(Double.parseDouble(precioPr));
+			in.setCantidadProducto(Integer.parseInt(cantidadPr));
+			in.setTotalProducto(Double.parseDouble(totalPr));
+			prdao.ActualizarDatos(in);
+			response.sendRedirect("index.jsp");
 			
+		}else if(acction.equals("ELIMINAR")) {
+			in.setId(Integer.parseInt(id));
+			prdao.Eliminar(in);
+			response.sendRedirect("index.jsp");
+		}
 			
-			
-			em.getTransaction().begin();
-			
-			////eliminar
-			em.remove(in);
-			em.persist(in);//insertar
-			//em.merge(in);//actualizar/
-			em.flush();
-			em.getTransaction().commit();
 			
 			
 		
-		}else if(acction.equals("Eliminar")) {
-			in = em.getReference(Inventario.class,in.getId());
-            em.getTransaction().begin();
-			////eliminar
-			em.remove(in);
-			//em.persist(in);//insertar
-			//em.merge(in);//actualizar/
-			em.flush();
-			em.getTransaction().commit();
+	
+	}
+	
+	
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//doGet(request, response);
+		ProductoDao prdao = new ProductoDao();
+		Gson json = new Gson();
+		
+		try {
+			response.getWriter().append(json.toJson(prdao.inventarioLista()));
 			
-		}else if(acction.equals("Actualizar")) {
 			
-			em.getTransaction().begin();
-			em.merge(in);
-			////eliminar
-			//em.remove(in);
-			//em.persist(in);//insertar
-			//em.merge(in);//actualizar/
-			em.flush();
-			em.getTransaction().commit();
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e);
+		}
+		
+		
+		
 			
 			
 		}
@@ -138,4 +148,4 @@ public class ServeleteControler extends HttpServlet {
 		
 	}
 
-}
+
